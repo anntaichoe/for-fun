@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Similarity Checker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Proxima Nova', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #6e6e6e; /* Space gray */
+            font-size: 2rem;
+        }
+
+        form {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center; /* Center align all elements in the form */
+        }
+
+        label {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #6e6e6e; /* Space gray */
+        }
+
+        textarea {
+            width: 80%;
+            height: 120px;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #6e6e6e; /* Space gray */
+        }
+
+        button {
+            display: inline-block;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-family: 'Proxima Nova', sans-serif;
+            color: white;
+            background-color: #6e6e6e; /* Space gray */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: black;
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+
+        .result .highlight {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .result .score {
+            font-weight: bold;
+            margin-top: 5px;
+            color: #333;
+            display: block;
+        }
+    </style>
+    <script>
+        function calculateSimilarity() {
+            const text1 = document.getElementById('text1').value;
+            const text2 = document.getElementById('text2').value;
+
+            const sentences1 = text1.split(/(?<!\w)(?:\.|\?|\!)(?!\w)/g).filter(Boolean).map(s => s.trim());
+            const sentences2 = text2.split(/(?<!\w)(?:\.|\?|\!)(?!\w)/g).filter(Boolean).map(s => s.trim());
+
+            let results = [];
+
+            sentences1.forEach(sentence1 => {
+                sentences2.forEach(sentence2 => {
+                    const words1 = new Set(sentence1.toLowerCase().match(/[a-z0-9]+/g));
+                    const words2 = new Set(sentence2.toLowerCase().match(/[a-z0-9]+/g));
+                    const intersection = [...words1].filter(word => words2.has(word));
+                    const union = new Set([...words1, ...words2]).size;
+                    const score = (intersection.length / union) * 100 || 0;
+
+                    if (intersection.length > 0) {
+                        let backgroundColor;
+                        let textColor = 'white';
+
+                        if (score === 100) {
+                            backgroundColor = 'red';
+                        } else if (score >= 70) {
+                            backgroundColor = 'orange';
+                        } else if (score >= 50) {
+                            backgroundColor = 'yellow';
+                            textColor = 'black';
+                        } else {
+                            backgroundColor = 'black';
+                        }
+
+                        results.push(`
+                            <div>
+                                <span class="highlight" style="background-color: ${backgroundColor}; color: ${textColor};">
+                                    ${intersection.join(' ')}
+                                </span>
+                                <span class="score">Similarity Score: ${score.toFixed(1)}%</span>
+                            </div>
+                        `);
+                    }
+                });
+            });
+
+            document.getElementById('result').innerHTML = results.length > 0 ? results.join('') : '<span class="score">No overlapping phrases found.</span>';
+        }
+    </script>
+</head>
+<body>
+    <h1>Text Similarity Checker</h1>
+    <form onsubmit="event.preventDefault(); calculateSimilarity();">
+        <div>
+            <label for="text1">Text 1:</label>
+            <textarea id="text1"></textarea>
+        </div>
+
+        <div>
+            <label for="text2">Text 2:</label>
+            <textarea id="text2"></textarea>
+        </div>
+
+        <button type="submit">Check</button>
+    </form>
+
+    <div id="result" class="result"></div>
+</body>
+</html>
